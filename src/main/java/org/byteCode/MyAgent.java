@@ -13,6 +13,8 @@ import org.smartboot.http.server.handler.HttpRouteHandler;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author zhaoyubo
@@ -23,7 +25,6 @@ import java.net.InetSocketAddress;
 public class MyAgent {
     public static void agentmain(String agentArgs, Instrumentation inst) {
         try {
-            ClassPool classPool = ClassPool.getDefault();
             Class[] allLoadedClasses = inst.getAllLoadedClasses();
             // 启动一个服务接口，供外部进行服务调用，进行动态字节码操作
             // 创建HttpServer服务器
@@ -35,9 +36,15 @@ public class MyAgent {
             routeHandle.route("/all", new HttpServerHandler() {
                 @Override
                 public void handle(HttpRequest request, HttpResponse response) throws IOException {
-                    String msg = "all class nums is " + allLoadedClasses.length;
-                    String msg1 = "测试中文";
-                    response.write(mapper.writeValueAsBytes(msg1));
+                    List<String> nameList = new ArrayList<>();
+                    for (Class allLoadedClass : allLoadedClasses) {
+                        String name = allLoadedClass.getName();
+                        String pfeName = "com.doe.afs";
+                        if(name.startsWith(pfeName)){
+                            nameList.add(name);
+                        }
+                    }
+                    response.write(mapper.writeValueAsBytes(nameList));
                 }
             });
             // 3. 启动服务

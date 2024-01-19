@@ -5,8 +5,15 @@ import org.jb2011.lnf.beautyeye.BeautyEyeLNFHelper;
 import org.smartboot.http.client.HttpClient;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author zhaoyubo
@@ -35,8 +42,10 @@ public class MainFrame {
                 httpClient.get("/all")
                         .onSuccess(response -> {
                             try {
-                                String aClass = new ObjectMapper().readValue(response.body().getBytes(), String.class);
-                                statusLabel.setText(aClass);
+                                List aClass = new ObjectMapper().readValue(response.body().getBytes(), List.class);
+                                System.out.println(aClass.size());
+                                System.out.println(aClass.get(0));
+                                statusLabel.setText(aClass.size()+"");
                             } catch (IOException ex) {
                                 throw new RuntimeException(ex);
                             }
@@ -49,5 +58,34 @@ public class MainFrame {
             frame.setBounds(400,300,400, 300);  				   //设置窗体显示位置和大小
         }catch(Exception e){
         }
+    }
+
+    private JPanel getTree(List<String> classList){
+        JPanel panel=new JPanel();
+        DefaultMutableTreeNode root=new DefaultMutableTreeNode("代码目录");
+        DefaultMutableTreeNode node=null;
+        DefaultMutableTreeNode childNode=null;
+        Set<String> lv1 = new HashSet<>();
+        Map<String ,String> classMap = new HashMap<>();
+        for (String fullName : classList) {
+            fullName = fullName.replace(".class","");
+            String pkgName = fullName.substring(0,fullName.lastIndexOf("."));
+            String className = fullName.substring(fullName.lastIndexOf(".")+1,fullName.length());
+            lv1.add(pkgName);
+            classMap.put(pkgName,className);
+        }
+        JTree tree=new JTree(root);
+        panel.add(tree);
+        panel.setVisible(true);
+        return panel;
+    }
+
+    public static void main(String[] args) {
+        String fullName = "com.exp.add.a.class";
+        fullName = fullName.replace(".class","");
+        String pkgName = fullName.substring(0,fullName.lastIndexOf("."));
+        String className = fullName.substring(fullName.lastIndexOf(".")+1,fullName.length());
+        System.out.println(pkgName);
+        System.out.println(className);
     }
 }
