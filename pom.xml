@@ -25,6 +25,12 @@
       <artifactId>byte-buddy-agent</artifactId>
       <version>1.12.14</version>
     </dependency>
+    <!-- CFR -->
+    <dependency>
+      <groupId>org.benf</groupId>
+      <artifactId>cfr</artifactId>
+      <version>0.151</version>
+    </dependency>
     <dependency>
       <groupId>org.smartboot.http</groupId>
       <artifactId>smart-http-server</artifactId>

@@ -135,4 +135,7 @@ public class MainFrame {
         frame.pack();//使窗体可视
         frame.setBounds(400,300,400, 300);
     }
+
+
+
 }
