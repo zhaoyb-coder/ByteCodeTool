@@ -26,6 +26,8 @@ import java.util.Set;
  **/
 public class MainFrame {
 
+    public static String jarPath = "";
+
     public static void out() {
         try{
             BeautyEyeLNFHelper.launchBeautyEyeLNF();
@@ -45,10 +47,9 @@ public class MainFrame {
                 httpClient.get("/all")
                         .onSuccess(response -> {
                             try {
-                                List aClass = new ObjectMapper().readValue(response.body().getBytes(), List.class);
-                                System.out.println(aClass.size());
-                                System.out.println(aClass.get(0));
-                                statusLabel.setText(aClass.size()+"");
+                                ClassObj clazz = new ObjectMapper().readValue(response.body().getBytes(), ClassObj.class);
+                                jarPath = clazz.getJarPath();
+                                frame.add(getTree(clazz.getClassName()));
                             } catch (IOException ex) {
                                 throw new RuntimeException(ex);
                             }
@@ -70,7 +71,6 @@ public class MainFrame {
         Set<String> lv1 = new HashSet<>();
         Map<String ,List<String>> classMap = new HashMap<>();
         for (String fullName : classList) {
-            fullName = fullName.replace(".class","");
             String pkgName = fullName.substring(0,fullName.lastIndexOf("."));
             String className = fullName.substring(fullName.lastIndexOf(".")+1,fullName.length());
             lv1.add(pkgName);
@@ -103,10 +103,12 @@ public class MainFrame {
                     TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
                     if (selPath != null)// 谨防空指针异常!双击空白处是会这样
                     {
-                        System.out.println(selPath);// 输出路径看一下
+                        System.out.println(selPath.getParentPath().getLastPathComponent());// 输出路径看一下
                         // 获取这个路径上的最后一个组件,也就是双击的地方
                         DefaultMutableTreeNode node = (DefaultMutableTreeNode) selPath.getLastPathComponent();
                         System.out.println(node.toString());// 输出这个组件toString()的字符串看一下
+                        System.out.println(jarPath+node);
+                       System.out.println(JadMain.decompile(jarPath, node.toString()));
                     }
                 }
 
@@ -120,12 +122,12 @@ public class MainFrame {
     public static void main(String[] args) throws Exception {
         String fullName = "";
         List<String> all = new ArrayList<>();
-        all.add("com.exp.add.a.class");
-        all.add("com.exp.add.b.class");
-        all.add("com.exp.add.c.class");
-        all.add("com.exp.del.1.class");
-        all.add("com.exp.upt.2.class");
-        all.add("com.exp.del.3.class");
+        all.add("com.exp.add.a");
+        all.add("com.exp.add.b");
+        all.add("com.exp.add.c");
+        all.add("com.exp.del.1");
+        all.add("com.exp.upt.2");
+        all.add("com.exp.del.3");
         BeautyEyeLNFHelper.launchBeautyEyeLNF();
         UIManager.put("RootPane.setupButtonVisible", false);
         //实例化一个JFrame对象

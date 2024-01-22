@@ -37,14 +37,24 @@ public class MyAgent {
                 @Override
                 public void handle(HttpRequest request, HttpResponse response) throws IOException {
                     List<String> nameList = new ArrayList<>();
+                    String jarPath = "";
                     for (Class allLoadedClass : allLoadedClasses) {
                         String name = allLoadedClass.getName();
                         String pfeName = "com.doe.afs";
-                        if(name.startsWith(pfeName)){
+                        if(name.startsWith(pfeName) && !name.contains("$")) {
                             nameList.add(name);
+                            String var1 = "file:/";
+                            String jarPath1 = allLoadedClass.getProtectionDomain().getCodeSource().getLocation().getFile();
+                            System.out.println(jarPath1);
+                            jarPath =  jarPath1.replace(var1,"");
+                            jarPath = jarPath.substring(0,jarPath.lastIndexOf("jar"));
+                            System.out.println(jarPath);
                         }
                     }
-                    response.write(mapper.writeValueAsBytes(nameList));
+                    ClassObj classObj = new ClassObj();
+                    classObj.setJarPath(jarPath);
+                    classObj.setClassName(nameList);
+                    response.write(mapper.writeValueAsBytes(classObj));
                 }
             });
             // 3. 启动服务
@@ -54,6 +64,12 @@ public class MyAgent {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        String jarPath = "a....jar";
+        jarPath = jarPath.substring(0,jarPath.lastIndexOf("jar"));
+        System.out.println(jarPath);
     }
 }
 

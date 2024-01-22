@@ -32,11 +32,11 @@ public class JadMain {
 
     /**
      * @param classFilePath
-     * @param methodName
+     * @param className
      * @param hideUnicode
      * @return
      */
-    public static String decompile(String classFilePath, String methodName, boolean hideUnicode) {
+    public static String decompile(String classFilePath, String className, boolean hideUnicode) {
         final StringBuilder result = new StringBuilder(8192);
 
         OutputSinkFactory mySink = new OutputSinkFactory() {
@@ -61,34 +61,30 @@ public class JadMain {
             }
         };
 
-        HashMap<String, String> options = new HashMap<String, String>();
-        /**
-         * @see org.benf.cfr.reader.util.MiscConstants.Version.getVersion() Currently,
-         *      the cfr version is wrong. so disable show cfr version.
-         */
+        HashMap<String, String> options = new HashMap<>();
         options.put("showversion", "false");
         options.put("hideutf", String.valueOf(hideUnicode));
-        if (!StringUtils.isBlank(methodName)) {
-            options.put("methodname", methodName);
+        if (!StringUtils.isBlank(className)) {
+            options.put("jarfilter", className);
         }
 
         CfrDriver driver = new CfrDriver.Builder().withOptions(options).withOutputSink(mySink).build();
-        List<String> toAnalyse = new ArrayList<String>();
+        List<String> toAnalyse = new ArrayList<>();
         toAnalyse.add(classFilePath);
         driver.analyse(toAnalyse);
-
+        //去除无用信息
+        result.replace(0,result.lastIndexOf("package"),"");
         return result.toString();
     }
         public static void main(String[] args) throws NotFoundException, IOException {
-            String className = "org/byteCode/Jad.class";
-            String classPath = Thread.currentThread().getContextClassLoader().getResource(className).getFile();
-            System.out.println(classPath);
+        String var2 =  "F:/ZYB-WORKSPACE/gitee/afs/afs-server/target/afs-service-1.0.1.jar";
+            String className = "F:/ZYB-WORKSPACE/gitee/afs/afs-server/target/afs-service-1.0.1.jar!/BOOT-INF/classes!/com/doe/afs/AfsApplication.class";
+//            String classPath = Thread.currentThread().getContextClassLoader().getResource(className).getFile();
+//            System.out.println(classPath);
 
-            String result = decompile(classPath, null);
+            String result = decompile(var2, "AfsApplication");
             System.out.println(result);
 
-            String result2 = decompile(classPath, "out");
-            System.out.println(result2);
         }
     }
 
