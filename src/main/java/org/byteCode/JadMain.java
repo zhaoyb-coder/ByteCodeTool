@@ -51,7 +51,6 @@ public class JadMain {
                 return new Sink<T>() {
                     @Override
                     public void write(T sinkable) {
-                        // skip message like: Analysing type demo.MathGame
                         if (sinkType == SinkType.PROGRESS) {
                             return;
                         }

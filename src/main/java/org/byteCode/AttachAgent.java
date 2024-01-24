@@ -2,6 +2,8 @@ package org.byteCode;
 
 import com.sun.tools.attach.VirtualMachine;
 import com.sun.tools.attach.VirtualMachineDescriptor;
+import org.byteCode.config.MainConfig;
+import org.byteCode.ui.MainFrame;
 
 import java.net.URL;
 import java.nio.file.Paths;
@@ -17,6 +19,7 @@ import java.util.Scanner;
  **/
 public class AttachAgent {
     public static void main(String[] args) {
+        MainConfig.mainPkg = args[0];
         // 获取当前运行的 Java 进程的 PID
         String pid = "";
         Scanner scanner = new Scanner(System.in);
@@ -44,7 +47,7 @@ public class AttachAgent {
             VirtualMachine vm = VirtualMachine.attach(pid);
             URL jarUrl = MyAgent.class.getProtectionDomain().getCodeSource().getLocation();
             String curJarPath = Paths.get(jarUrl.toURI()).toString();
-            vm.loadAgent(curJarPath);
+            vm.loadAgent(curJarPath,MainConfig.mainPkg);
             System.out.println("*** Attach finish ***");
             MainFrame.out();
         } catch (Exception e) {

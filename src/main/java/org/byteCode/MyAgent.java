@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
 import javassist.*;
 import jdk.nashorn.internal.parser.JSONParser;
+import org.byteCode.config.MainConfig;
 import org.smartboot.http.server.HttpBootstrap;
 import org.smartboot.http.server.HttpRequest;
 import org.smartboot.http.server.HttpResponse;
@@ -14,7 +15,9 @@ import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author zhaoyubo
@@ -25,6 +28,8 @@ import java.util.List;
 public class MyAgent {
     public static void agentmain(String agentArgs, Instrumentation inst) {
         try {
+            MainConfig.inst = inst;
+            MainConfig.mainPkg = agentArgs;
             Class[] allLoadedClasses = inst.getAllLoadedClasses();
             // 启动一个服务接口，供外部进行服务调用，进行动态字节码操作
             // 创建HttpServer服务器
@@ -40,20 +45,18 @@ public class MyAgent {
                     String jarPath = "";
                     for (Class allLoadedClass : allLoadedClasses) {
                         String name = allLoadedClass.getName();
-                        String pfeName = "com.doe.afs";
-                        if(name.startsWith(pfeName) && !name.contains("$")) {
+                        if(name.startsWith(agentArgs) && !name.contains("$")) {
                             nameList.add(name);
                             String var1 = "file:/";
                             String jarPath1 = allLoadedClass.getProtectionDomain().getCodeSource().getLocation().getFile();
-                            System.out.println(jarPath1);
                             jarPath =  jarPath1.replace(var1,"");
-                            jarPath = jarPath.substring(0,jarPath.lastIndexOf("jar"));
-                            System.out.println(jarPath);
+                            jarPath = jarPath.substring(0,jarPath.lastIndexOf("jar")+3);
                         }
                     }
                     ClassObj classObj = new ClassObj();
                     classObj.setJarPath(jarPath);
                     classObj.setClassName(nameList);
+                    MainConfig.classObj = classObj;
                     response.write(mapper.writeValueAsBytes(classObj));
                 }
             });
@@ -64,12 +67,6 @@ public class MyAgent {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        String jarPath = "a....jar";
-        jarPath = jarPath.substring(0,jarPath.lastIndexOf("jar"));
-        System.out.println(jarPath);
     }
 }
 
