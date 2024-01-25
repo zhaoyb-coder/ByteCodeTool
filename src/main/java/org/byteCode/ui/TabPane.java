@@ -1,5 +1,6 @@
 package org.byteCode.ui;
 
+import org.byteCode.config.MainConfig;
 import org.jb2011.lnf.beautyeye.BeautyEyeLNFHelper;
 
 import javax.swing.*;
@@ -31,9 +32,16 @@ public class TabPane extends JPanel {
         jadPkgPanel.setBackground(Color.WHITE);
         jadPkgPanel.setPreferredSize(new Dimension(200, 700));
 
-        JPanel jadCodePanel = new JPanel();
+
+        //反编译展示组件
+        JTextArea jadText = new JTextArea();
+        MainConfig.jadText = jadText;
+        jadText.setPreferredSize(new Dimension(700, 700));
+        JScrollPane jadCodePanel = new JScrollPane();
+        jadCodePanel.setViewportView(MainConfig.jadText);
         jadCodePanel.setBackground(Color.lightGray);
         jadCodePanel.setPreferredSize(new Dimension(700, 700));
+        jadCodePanel.add(jadText);
 
         jadJPanel.add(jadPkgPanel,BorderLayout.WEST);
         jadJPanel.add(jadCodePanel,BorderLayout.EAST);

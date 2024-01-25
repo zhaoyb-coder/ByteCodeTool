@@ -82,13 +82,16 @@ public class JadPkgTree {
                                         System.out.println("clazz.getJarPath()"+clazz.getJarPath());
                                         String result = JadMain.decompile(clazz.getJarPath(), node.toString());
                                         System.out.println(result);
+                                        //把这些反编译完成的代码展示到右侧的文本组件中
+                                        MainConfig.jadText.setText(result);
                                     }
                                 }
 
                             }
                         });
                         cd.countDown();
-                    } catch (IOException ex) {
+                    } catch (Exception ex) {
+                        cd.countDown();
                     }
                 })
                 .onFailure(Throwable::printStackTrace)

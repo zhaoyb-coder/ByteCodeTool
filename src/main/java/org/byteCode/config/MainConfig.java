@@ -2,6 +2,7 @@ package org.byteCode.config;
 
 import org.byteCode.ClassObj;
 
+import javax.swing.*;
 import java.lang.instrument.Instrumentation;
 
 /**
@@ -17,4 +18,6 @@ public class MainConfig {
     public volatile static ClassObj classObj = null;
 
     public volatile static String mainPkg =  "";
+
+    public volatile static JTextArea jadText = null;
 }
