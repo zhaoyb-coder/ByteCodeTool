@@ -1,9 +1,10 @@
 package org.byteCode.config;
 
-import org.byteCode.ClassObj;
+import java.lang.instrument.Instrumentation;
 
 import javax.swing.*;
-import java.lang.instrument.Instrumentation;
+
+import org.byteCode.ClassObj;
 
 /**
  * @author zhaoyubo
@@ -17,7 +18,9 @@ public class MainConfig {
 
     public volatile static ClassObj classObj = null;
 
-    public volatile static String mainPkg =  "";
+    public volatile static String mainPkg = "";
 
     public volatile static JTextArea jadText = null;
+
+    public static final int HTTP_PORT = 10086;
 }

@@ -42,6 +42,7 @@ public class MyAgent {
         bootstrap.httpHandler(JadController.getAllPackage(allLoadedClasses, agentArgs));
         // 2. 启动服务
         bootstrap.configuration().bannerEnabled(false).debug(false);
+        bootstrap.setPort(MainConfig.HTTP_PORT);
         bootstrap.start();
     }
 }

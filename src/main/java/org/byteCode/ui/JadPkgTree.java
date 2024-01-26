@@ -28,8 +28,7 @@ public class JadPkgTree {
     public static JTree tree = new JTree();
 
     public static JTree of() throws InterruptedException {
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("代码目录");
-        HttpClient httpClient = new HttpClient("127.0.0.1", 8080);
+        HttpClient httpClient = new HttpClient("127.0.0.1", MainConfig.HTTP_PORT);
         CountDownLatch cd = new CountDownLatch(1);
         httpClient.get("/all").onSuccess(response -> {
             try {
