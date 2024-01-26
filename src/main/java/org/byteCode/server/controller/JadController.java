@@ -1,15 +1,16 @@
 package org.byteCode.server.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.byteCode.ClassObj;
 import org.smartboot.http.server.HttpRequest;
 import org.smartboot.http.server.HttpResponse;
 import org.smartboot.http.server.HttpServerHandler;
 import org.smartboot.http.server.handler.HttpRouteHandler;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author zhaoyubo
@@ -21,7 +22,7 @@ public class JadController {
 
     public static ObjectMapper mapper = new ObjectMapper();
 
-    public HttpRouteHandler allPackage(Class[] allLoadedClasses){
+    public static HttpRouteHandler getAllPackage(Class[] allLoadedClasses, String pfeName) {
         HttpRouteHandler routeHandle = new HttpRouteHandler();
         routeHandle.route("/all", new HttpServerHandler() {
             @Override
@@ -30,13 +31,12 @@ public class JadController {
                 String jarPath = "";
                 for (Class allLoadedClass : allLoadedClasses) {
                     String name = allLoadedClass.getName();
-                    String pfeName = "com.doe.afs";
-                    if(name.startsWith(pfeName) && !name.contains("$")) {
+                    if (name.startsWith(pfeName) && !name.contains("$")) {
                         nameList.add(name);
                         String var1 = "file:/";
                         String jarPath1 = allLoadedClass.getProtectionDomain().getCodeSource().getLocation().getFile();
-                        jarPath =  jarPath1.replace(var1,"");
-                        jarPath = jarPath.substring(0,jarPath.lastIndexOf("jar")+3);
+                        jarPath = jarPath1.replace(var1, "");
+                        jarPath = jarPath.substring(0, jarPath.lastIndexOf("jar") + 3);
                     }
                 }
                 ClassObj classObj = new ClassObj();
@@ -47,6 +47,5 @@ public class JadController {
         });
         return routeHandle;
     }
-
 
 }

@@ -33,7 +33,7 @@ public class MainFrame {
             frame.setContentPane(new TabPane());
             frame.setVisible(true);
             frame.pack();//使窗体可视
-            frame.setSize(1000, 700);				   //设置窗体显示位置和大小
+            frame.setSize(1000, 850);				   //设置窗体显示位置和大小
         }catch(Exception e){
         }
     }
