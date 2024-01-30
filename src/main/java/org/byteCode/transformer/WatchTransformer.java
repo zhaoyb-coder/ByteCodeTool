@@ -9,7 +9,6 @@ import org.byteCode.config.MainConfig;
 
 import javassist.CtClass;
 import javassist.CtMethod;
-import javassist.CtNewMethod;
 
 /**
  * @author zhaoyubo
@@ -35,27 +34,16 @@ public class WatchTransformer implements ClassFileTransformer {
                 return ctClass.toBytecode();
             }
             String methodName = "test";
-            String outputStr =
-                "\nSystem.out.println(\"this method " + methodName + " cost:\" +(endTime - startTime) +\"ms.\");";
-            System.out.println("outputStr -----------------------------");
-            CtMethod ctmethod = ctClass.getDeclaredMethod(methodName);// 得到这方法实例
-            String newMethodName = methodName + "$old";// 新定义一个方法叫做比如sayHello$old
-            ctmethod.setName(newMethodName);// 将原来的方法名字修改
+            CtMethod ctMethod = ctClass.getDeclaredMethod(methodName);// 得到这方法实例
 
-            // 创建新的方法，复制原来的方法，名字为原来的名字
-            CtMethod newMethod = CtNewMethod.copy(ctmethod, methodName, ctClass, null);
+            ctMethod.addLocalVariable("startTime", CtClass.longType);
+            ctMethod.addLocalVariable("endTime", CtClass.longType);
+            ctMethod.addLocalVariable("duration", CtClass.longType);
+            ctMethod.insertBefore("startTime = System.currentTimeMillis();");
+            ctMethod.insertAfter("endTime = System.currentTimeMillis();");
+            ctMethod.insertAfter("duration = endTime - startTime;");
+            ctMethod.insertAfter("System.out.println(\"执行时间\" + duration);");
 
-            // 构建新的方法体
-            StringBuilder bodyStr = new StringBuilder();
-            bodyStr.append("{");
-            bodyStr.append(prefix);
-            bodyStr.append(newMethodName + "($$);\n");// 调用原有代码，类似于method();($$)表示所有的参数
-            bodyStr.append(postfix);
-            bodyStr.append(outputStr);
-            bodyStr.append("}");
-
-            newMethod.setBody(bodyStr.toString());// 替换新方法
-            ctClass.addMethod(newMethod);// 增加新方法
             return ctClass.toBytecode();
         } catch (Exception e) {
             System.out.println(e.getMessage());

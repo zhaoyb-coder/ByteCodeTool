@@ -4,7 +4,7 @@ import java.lang.instrument.Instrumentation;
 
 import org.byteCode.config.MainConfig;
 import org.byteCode.server.controller.JadController;
-import org.byteCode.transformer.WatchTransformer;
+import org.byteCode.server.controller.WatchController;
 import org.smartboot.http.server.HttpBootstrap;
 
 import javassist.LoaderClassPath;
@@ -22,11 +22,11 @@ public class MyAgent {
             MainConfig.inst = inst;
             MainConfig.mainPkg = agentArgs;
             // 初始化ClassPool#ClassesLoaded
-            initClassesLoaded(inst.getAllLoadedClasses());
+            // initClassesLoaded(inst.getAllLoadedClasses());
             // 开启http服务
             startHttp(agentArgs, inst.getAllLoadedClasses());
             // 增加Watch
-            inst.addTransformer(new WatchTransformer());
+            // inst.addTransformer(new WatchTransformer());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -46,7 +46,8 @@ public class MyAgent {
         HttpBootstrap bootstrap = new HttpBootstrap();
         bootstrap.configuration().debug(true);
         // 1. 实例化路由Handle
-        bootstrap.httpHandler(JadController.getAllPackage(allLoadedClasses, agentArgs));
+        bootstrap.httpHandler(JadController.getAllPackage(allLoadedClasses, agentArgs))
+            .httpHandler(WatchController.setWatchMethod(allLoadedClasses, MainConfig.inst));
         // 2. 启动服务
         bootstrap.configuration().bannerEnabled(false).debug(false);
         bootstrap.setPort(MainConfig.HTTP_PORT);
