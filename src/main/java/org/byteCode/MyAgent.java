@@ -4,7 +4,10 @@ import java.lang.instrument.Instrumentation;
 
 import org.byteCode.config.MainConfig;
 import org.byteCode.server.controller.JadController;
+import org.byteCode.transformer.WatchTransformer;
 import org.smartboot.http.server.HttpBootstrap;
+
+import javassist.LoaderClassPath;
 
 /**
  * @author zhaoyubo
@@ -18,8 +21,12 @@ public class MyAgent {
             // 保存全局配置
             MainConfig.inst = inst;
             MainConfig.mainPkg = agentArgs;
+            // 初始化ClassPool#ClassesLoaded
+            initClassesLoaded(inst.getAllLoadedClasses());
             // 开启http服务
             startHttp(agentArgs, inst.getAllLoadedClasses());
+            // 增加Watch
+            inst.addTransformer(new WatchTransformer());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -44,5 +51,14 @@ public class MyAgent {
         bootstrap.configuration().bannerEnabled(false).debug(false);
         bootstrap.setPort(MainConfig.HTTP_PORT);
         bootstrap.start();
+    }
+
+    public static void initClassesLoaded(Class[] allLoadedClasses) {
+        for (Class cla : allLoadedClasses) {
+            ClassLoader classLoader = cla.getClassLoader();
+            if (null != classLoader) {
+                MainConfig.classPool.appendClassPath(new LoaderClassPath(classLoader));
+            }
+        }
     }
 }
