@@ -2,6 +2,7 @@ package org.byteCode;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author zhaoyubo
@@ -15,6 +16,8 @@ public class ClassObj implements Serializable {
     private String jarPath;
 
     private List<String> className;
+
+    private Map<String, List<String>> methodList;
 
     public String getJarPath() {
         return jarPath;
@@ -30,5 +33,13 @@ public class ClassObj implements Serializable {
 
     public void setClassName(List<String> className) {
         this.className = className;
+    }
+
+    public Map<String, List<String>> getMethodList() {
+        return methodList;
+    }
+
+    public void setMethodList(Map<String, List<String>> methodList) {
+        this.methodList = methodList;
     }
 }

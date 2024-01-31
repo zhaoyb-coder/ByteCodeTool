@@ -3,8 +3,7 @@ package org.byteCode;
 import java.lang.instrument.Instrumentation;
 
 import org.byteCode.config.MainConfig;
-import org.byteCode.server.controller.JadController;
-import org.byteCode.server.controller.WatchController;
+import org.byteCode.server.controller.Controller;
 import org.smartboot.http.server.HttpBootstrap;
 
 import javassist.LoaderClassPath;
@@ -46,8 +45,7 @@ public class MyAgent {
         HttpBootstrap bootstrap = new HttpBootstrap();
         bootstrap.configuration().debug(true);
         // 1. 实例化路由Handle
-        bootstrap.httpHandler(JadController.getAllPackage(allLoadedClasses, agentArgs))
-            .httpHandler(WatchController.setWatchMethod(allLoadedClasses, MainConfig.inst));
+        bootstrap.httpHandler(Controller.getRoute(allLoadedClasses, agentArgs));
         // 2. 启动服务
         bootstrap.configuration().bannerEnabled(false).debug(false);
         bootstrap.setPort(MainConfig.HTTP_PORT);

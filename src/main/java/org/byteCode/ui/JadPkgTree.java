@@ -1,14 +1,18 @@
 package org.byteCode.ui;
 
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import javax.swing.*;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.byteCode.ClassObj;
 import org.byteCode.JadMain;
@@ -20,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author zhaoyubo
  * @title JadPkgTree
- * @description <TODO description class purpose>
+ * @description 代码目录树UI
  * @create 2024/1/24 13:39
  **/
 public class JadPkgTree {
@@ -67,6 +71,49 @@ public class JadPkgTree {
         return tree;
     }
 
+    public static JTree watch() throws InterruptedException {
+        HttpClient httpClient = new HttpClient("127.0.0.1", MainConfig.HTTP_PORT);
+        CountDownLatch cd = new CountDownLatch(1);
+        httpClient.get("/allMethod").onSuccess(response -> {
+            try {
+                ClassObj clazz = new ObjectMapper().readValue(response.body().getBytes(), ClassObj.class);
+                MainConfig.classObj = clazz;
+                DefaultMutableTreeNode jTreeRoot = buildTree2(clazz.getClassName(), clazz.getMethodList());
+                tree = new JTree(jTreeRoot);
+                tree.expandRow(1);
+                tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+                TreeSelectionListener treeSelectionListener = treeSelectionEvent -> {
+                    JTree treeSource = (JTree)treeSelectionEvent.getSource();
+                    TreePath[] selectionPaths = treeSource.getSelectionPaths();
+                    if (null != selectionPaths) {
+                        for (TreePath selectionPath : selectionPaths) {
+                            Object[] path = selectionPath.getPath();
+                            String fullClass = "";
+                            String method = "";
+                            for (int i = 0; i < path.length; i++) {
+                                if (i == 0) {
+                                    fullClass = fullClass + path[i].toString();
+                                } else if (i == path.length - 1) {
+                                    method = path[i].toString();
+                                } else {
+                                    fullClass = fullClass + "." + path[i].toString();
+                                }
+                            }
+                            MainConfig.addWatch(fullClass, method);
+                        }
+                    }
+                };
+                tree.addTreeSelectionListener(treeSelectionListener);
+                cd.countDown();
+            } catch (Exception ex) {
+                cd.countDown();
+            }
+        }).onFailure(Throwable::printStackTrace).done();
+        // 等待调用完成再返回结果
+        cd.await();
+        return tree;
+    }
+
     public static DefaultMutableTreeNode buildTree(List<String> classNames) {
         Node root = new Node("代码目录", 0);
         for (String className : classNames) {
@@ -90,10 +137,48 @@ public class JadPkgTree {
         return convertToJTree(root);
     }
 
+    public static DefaultMutableTreeNode buildTree2(List<String> classNames, Map<String, List<String>> methodMap) {
+        Node root = new Node("代码目录", 0);
+        for (String className : classNames) {
+            String[] parts = className.split("\\.");
+            Node currentNode = root;
+            for (String part : parts) {
+                Node childNode = findChildNode(currentNode, part);
+
+                if (childNode == null) {
+                    int nodeType = (part.equals(parts[parts.length - 1])) ? 2 : 1;
+                    childNode = new Node(part, nodeType);
+                    currentNode.addChildNode(childNode);
+                }
+
+                currentNode = childNode;
+            }
+        }
+
+        optimizeTree(root);
+        return convertToJTree2(root, methodMap);
+    }
+
     public static DefaultMutableTreeNode convertToJTree(Node node) {
         DefaultMutableTreeNode jTreeNode = new DefaultMutableTreeNode(node.nodeName);
         for (Node childNode : node.childNodes) {
             jTreeNode.add(convertToJTree(childNode));
+        }
+        return jTreeNode;
+    }
+
+    public static DefaultMutableTreeNode convertToJTree2(Node node, Map<String, List<String>> methodMap) {
+        DefaultMutableTreeNode jTreeNode = new DefaultMutableTreeNode(node.nodeName);
+        for (Node childNode : node.childNodes) {
+            jTreeNode.add(convertToJTree2(childNode, methodMap));
+        }
+        if (node.nodeType == 2) {
+            List<String> strings = methodMap.get(node.nodeName);
+            if (null != strings) {
+                for (String string : strings) {
+                    jTreeNode.add(new DefaultMutableTreeNode(string));
+                }
+            }
         }
         return jTreeNode;
     }
@@ -149,4 +234,36 @@ public class JadPkgTree {
         }
     }
 
+    public static void main(String[] args) throws Exception {
+        JTree tree = new JTree();
+        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+        TreeSelectionListener treeSelectionListener = treeSelectionEvent -> {
+            JTree treeSource = (JTree)treeSelectionEvent.getSource();
+            TreePath[] selectionPaths = treeSource.getSelectionPaths();
+            if (null != selectionPaths) {
+                for (TreePath selectionPath : selectionPaths) {
+                    Object[] path = selectionPath.getPath();
+                    String full = "";
+                    for (int i = 0; i < path.length; i++) {
+                        if (i == 0) {
+                            full = full + path[i].toString();
+                        } else if (i == path.length - 1) {
+                            // 最后一个节点是方法
+                            full = full + "#" + path[i].toString();
+                        } else {
+                            full = full + "." + path[i].toString();
+                        }
+                    }
+                    System.out.println(full);
+                }
+            }
+        };
+        tree.addTreeSelectionListener(treeSelectionListener);
+        JFrame frame = new JFrame("");
+        frame.add(new JScrollPane(tree));
+        frame.setPreferredSize(new Dimension(380, 320));
+        frame.setLocation(150, 150);
+        frame.pack();
+        frame.setVisible(true);
+    }
 }

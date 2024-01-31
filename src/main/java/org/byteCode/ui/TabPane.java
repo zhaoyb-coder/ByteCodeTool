@@ -5,6 +5,7 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.*;
 
+import org.byteCode.clint.Clint;
 import org.byteCode.config.MainConfig;
 
 /**
@@ -40,12 +41,43 @@ public class TabPane extends JPanel {
 
         jadJPanel.add(jadPkgPanel, BorderLayout.WEST);
         jadJPanel.add(jadCodePanel, BorderLayout.EAST);
+
         jTabbedpane.addTab("Jad", null, jadJPanel, "反编译");
         jTabbedpane.setMnemonicAt(0, KeyEvent.VK_0);
-        // 增加待定页签
-        JPanel varJPanel = new JPanel();
-        jTabbedpane.addTab("todo", null, varJPanel, "待定");
+
+        // 增加监控页签
+        JPanel watchJPanel = new JPanel();
+        jTabbedpane.addTab("Watch", null, watchJPanel, "监控");
         jTabbedpane.setMnemonicAt(1, KeyEvent.VK_1);
+        // jadJPanel划分为两个大的区域
+        JScrollPane watchPkgPanel = new JScrollPane(JadPkgTree.watch());
+        watchPkgPanel.setBackground(Color.WHITE);
+        watchPkgPanel.setPreferredSize(new Dimension(200, 700));
+
+        JButton watchBtn = new JButton("start watch");
+        watchBtn.setPreferredSize(new Dimension(700, 30));
+        watchBtn.addActionListener(e -> {
+            // 调用watch方法，进行字节码插桩，然后等待请求调用
+            MainConfig.watchText.setText(MainConfig.currentWatchMap.size() + "");
+            Clint.watch();
+        });
+
+        // 监控信息展示组件
+        JTextArea watchText = new JTextArea();
+        MainConfig.watchText = watchText;
+
+        JScrollPane watchCodePanel = new JScrollPane();
+        watchCodePanel.setViewportView(MainConfig.watchText);
+        watchCodePanel.setBackground(Color.lightGray);
+        watchCodePanel.setPreferredSize(new Dimension(700, 670));
+
+        JPanel watchAllJPanel = new JPanel();
+        watchAllJPanel.setPreferredSize(new Dimension(700, 700));
+        watchAllJPanel.add(watchBtn, BorderLayout.SOUTH);
+        watchAllJPanel.add(watchCodePanel, BorderLayout.NORTH);
+
+        watchJPanel.add(watchPkgPanel, BorderLayout.WEST);
+        watchJPanel.add(watchAllJPanel, BorderLayout.EAST);
 
         jTabbedpane.setPreferredSize(new Dimension(9000, 700));
         setLayout(new GridLayout(1, 1));

@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.byteCode.config.MainConfig;
 
@@ -17,33 +20,43 @@ import javassist.CtMethod;
  * @create 2024/1/30 15:45
  **/
 public class WatchTransformer implements ClassFileTransformer {
-    final static String prefix = "\nlong startTime = System.currentTimeMillis();\n";
-    final static String postfix = "\nlong endTime = System.currentTimeMillis();\n";
-
-    public WatchTransformer() {}
 
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
         ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
-
-        System.out.println("start transform -----------------------------");
+        System.out.println("class---transform--");
         try {
             CtClass ctClass = MainConfig.classPool.makeClass(new ByteArrayInputStream(classfileBuffer));
-            System.out.println("ctclass -----------------------------" + ctClass.getName());
-            if (!ctClass.getName().equals("com.doe.afs.controller.house.HouseController")) {
+            Map<String, List<String>> currentWatchMap = MainConfig.currentWatchMap;
+            Set<String> strings = currentWatchMap.keySet();
+            for (String string : strings) {
+                System.out.println("class---" + string);
+                System.out.println("method---" + currentWatchMap.get(string).get(0));
+            }
+            if (!currentWatchMap.containsKey(ctClass.getName())) {
                 return ctClass.toBytecode();
             }
-            String methodName = "test";
-            CtMethod ctMethod = ctClass.getDeclaredMethod(methodName);// 得到这方法实例
-
-            ctMethod.addLocalVariable("startTime", CtClass.longType);
-            ctMethod.addLocalVariable("endTime", CtClass.longType);
-            ctMethod.addLocalVariable("duration", CtClass.longType);
-            ctMethod.insertBefore("startTime = System.currentTimeMillis();");
-            ctMethod.insertAfter("endTime = System.currentTimeMillis();");
-            ctMethod.insertAfter("duration = endTime - startTime;");
-            ctMethod.insertAfter("System.out.println(\"执行时间\" + duration);");
-
+            System.out.println("-------start transform-------------");
+            List<String> methodList = currentWatchMap.get(ctClass.getName());
+            for (String method : methodList) {
+                CtMethod ctMethod = ctClass.getDeclaredMethod(method);// 得到这方法实例
+                ctMethod.addLocalVariable("startTime", CtClass.longType);
+                ctMethod.addLocalVariable("endTime", CtClass.longType);
+                ctMethod.addLocalVariable("execTime", CtClass.longType);
+                ctMethod.addLocalVariable("execTime", CtClass.longType);
+                ctMethod.addLocalVariable("request", MainConfig.classPool.get(String.class.getName()));
+                ctMethod.addLocalVariable("response", MainConfig.classPool.get(String.class.getName()));
+                ctMethod.insertBefore("startTime = System.currentTimeMillis();");
+                ctMethod.insertAfter("endTime = System.currentTimeMillis();");
+                ctMethod.insertAfter("execTime = endTime - startTime;");
+                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setMethodName(\"" + method + "\");");
+                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setExecTime(execTime);");
+                ctMethod.insertAfter("request = org.byteCode.util.Json.toJson($args);");
+                ctMethod.insertAfter("response = org.byteCode.util.Json.toJson($_);");
+                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setRequest(request);");
+                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setResponse(response);");
+                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setWait(false);");
+            }
             return ctClass.toBytecode();
         } catch (Exception e) {
             System.out.println(e.getMessage());
