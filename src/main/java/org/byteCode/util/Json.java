@@ -37,4 +37,12 @@ public class Json {
             throw new RuntimeException(e);
         }
     }
+
+    public static String format(Object obj) {
+        try {
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

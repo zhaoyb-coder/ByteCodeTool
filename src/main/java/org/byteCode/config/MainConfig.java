@@ -1,14 +1,11 @@
 package org.byteCode.config;
 
 import java.lang.instrument.Instrumentation;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import javax.swing.*;
 
 import org.byteCode.ClassObj;
+import org.byteCode.message.WatchMethod;
 import org.byteCode.message.WatchMsg;
 
 import javassist.ClassPool;
@@ -58,16 +55,6 @@ public class MainConfig {
 
     public static volatile WatchMsg watchRes = new WatchMsg();
 
-    public static volatile Map<String, List<String>> currentWatchMap = new HashMap<>();
+    public static volatile WatchMethod watchMethod = new WatchMethod();
 
-    public static void addWatch(String className, String method) {
-        if (currentWatchMap.containsKey(className)) {
-            List<String> methodList = currentWatchMap.get(className);
-            methodList.add(method);
-        } else {
-            List<String> methodList = new ArrayList<>();
-            methodList.add(method);
-            currentWatchMap.put(className, methodList);
-        }
-    }
 }

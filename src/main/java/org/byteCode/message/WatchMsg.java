@@ -13,7 +13,7 @@ public class WatchMsg implements Serializable {
     private static final long serialVersionUID = -5540205557206208721L;
 
     /** 是否可以返回 */
-    private transient boolean wait = true;
+    private static boolean wait = true;
     /** 类名 */
     private String className;
     /** 方法名 */
@@ -35,10 +35,6 @@ public class WatchMsg implements Serializable {
 
     public String getExecTime() {
         return execTime;
-    }
-
-    public void setExecTime(long execTime) {
-        this.execTime = execTime + "ms";
     }
 
     public Object getRequest() {
@@ -71,5 +67,9 @@ public class WatchMsg implements Serializable {
 
     public void setClassName(String className) {
         this.className = className;
+    }
+
+    public void setExecTime(String execTime) {
+        this.execTime = execTime;
     }
 }

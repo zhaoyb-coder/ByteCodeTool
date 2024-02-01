@@ -54,22 +54,21 @@ public class TabPane extends JPanel {
         watchPkgPanel.setBackground(Color.WHITE);
         watchPkgPanel.setPreferredSize(new Dimension(200, 700));
 
+        // 监控信息展示组件
+        JTextArea watchText = new JTextArea();
+        MainConfig.watchText = watchText;
         JButton watchBtn = new JButton("start watch");
         watchBtn.setPreferredSize(new Dimension(700, 30));
         watchBtn.addActionListener(e -> {
             // 调用watch方法，进行字节码插桩，然后等待请求调用
-            MainConfig.watchText.setText(MainConfig.currentWatchMap.size() + "");
+            MainConfig.watchText.setText("start watch! waiting..........");
             Clint.watch();
         });
 
-        // 监控信息展示组件
-        JTextArea watchText = new JTextArea();
-        MainConfig.watchText = watchText;
-
         JScrollPane watchCodePanel = new JScrollPane();
-        watchCodePanel.setViewportView(MainConfig.watchText);
+        watchCodePanel.setViewportView(watchText);
         watchCodePanel.setBackground(Color.lightGray);
-        watchCodePanel.setPreferredSize(new Dimension(700, 670));
+        watchCodePanel.setPreferredSize(new Dimension(700, 650));
 
         JPanel watchAllJPanel = new JPanel();
         watchAllJPanel.setPreferredSize(new Dimension(700, 700));

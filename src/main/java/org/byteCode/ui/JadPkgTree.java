@@ -17,9 +17,8 @@ import javax.swing.tree.TreeSelectionModel;
 import org.byteCode.ClassObj;
 import org.byteCode.JadMain;
 import org.byteCode.config.MainConfig;
+import org.byteCode.util.Json;
 import org.smartboot.http.client.HttpClient;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author zhaoyubo
@@ -29,25 +28,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  **/
 public class JadPkgTree {
 
-    public static JTree tree = new JTree();
+    public static JTree JadTree = new JTree();
+
+    public static JTree watchTree = new JTree();
 
     public static JTree of() throws InterruptedException {
         HttpClient httpClient = new HttpClient("127.0.0.1", MainConfig.HTTP_PORT);
         CountDownLatch cd = new CountDownLatch(1);
         httpClient.get("/all").onSuccess(response -> {
             try {
-                ClassObj clazz = new ObjectMapper().readValue(response.body().getBytes(), ClassObj.class);
+                ClassObj clazz = Json.readValue(response.body(), ClassObj.class);
                 MainConfig.classObj = clazz;
+                System.out.println(MainConfig.classObj);
                 DefaultMutableTreeNode jTreeRoot = buildTree(clazz.getClassName());
-                tree = new JTree(jTreeRoot);
-                tree.expandRow(1);
-                tree.addMouseListener(new MouseAdapter() {
+                JadTree = new JTree(jTreeRoot);
+                JadTree.expandRow(1);
+                JadTree.addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
                         // 如果在这棵树上点击了2次,即双击
-                        if (e.getSource() == tree && e.getClickCount() == 2) {
+                        if (e.getSource() == JadTree && e.getClickCount() == 2) {
                             // 按照鼠标点击的坐标点获取路径
-                            TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
+                            TreePath selPath = JadTree.getPathForLocation(e.getX(), e.getY());
                             if (selPath != null)// 谨防空指针异常!双击空白处是会这样
                             {
                                 // 获取这个路径上的最后一个组件,也就是双击的地方
@@ -68,7 +70,7 @@ public class JadPkgTree {
         }).onFailure(Throwable::printStackTrace).done();
         // 等待调用完成再返回结果
         cd.await();
-        return tree;
+        return JadTree;
     }
 
     public static JTree watch() throws InterruptedException {
@@ -76,22 +78,25 @@ public class JadPkgTree {
         CountDownLatch cd = new CountDownLatch(1);
         httpClient.get("/allMethod").onSuccess(response -> {
             try {
-                ClassObj clazz = new ObjectMapper().readValue(response.body().getBytes(), ClassObj.class);
+                ClassObj clazz = Json.readValue(response.body(), ClassObj.class);
                 MainConfig.classObj = clazz;
                 DefaultMutableTreeNode jTreeRoot = buildTree2(clazz.getClassName(), clazz.getMethodList());
-                tree = new JTree(jTreeRoot);
-                tree.expandRow(1);
-                tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
+                watchTree = new JTree(jTreeRoot);
+                watchTree.expandRow(1);
+                watchTree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
                 TreeSelectionListener treeSelectionListener = treeSelectionEvent -> {
                     JTree treeSource = (JTree)treeSelectionEvent.getSource();
                     TreePath[] selectionPaths = treeSource.getSelectionPaths();
                     if (null != selectionPaths) {
+                        MainConfig.watchMethod.remove();
                         for (TreePath selectionPath : selectionPaths) {
                             Object[] path = selectionPath.getPath();
                             String fullClass = "";
                             String method = "";
                             for (int i = 0; i < path.length; i++) {
                                 if (i == 0) {
+                                    continue;
+                                } else if (i == 1) {
                                     fullClass = fullClass + path[i].toString();
                                 } else if (i == path.length - 1) {
                                     method = path[i].toString();
@@ -99,11 +104,11 @@ public class JadPkgTree {
                                     fullClass = fullClass + "." + path[i].toString();
                                 }
                             }
-                            MainConfig.addWatch(fullClass, method);
+                            MainConfig.watchMethod.addWatch(fullClass, method);
                         }
                     }
                 };
-                tree.addTreeSelectionListener(treeSelectionListener);
+                watchTree.addTreeSelectionListener(treeSelectionListener);
                 cd.countDown();
             } catch (Exception ex) {
                 cd.countDown();
@@ -111,7 +116,7 @@ public class JadPkgTree {
         }).onFailure(Throwable::printStackTrace).done();
         // 等待调用完成再返回结果
         cd.await();
-        return tree;
+        return watchTree;
     }
 
     public static DefaultMutableTreeNode buildTree(List<String> classNames) {

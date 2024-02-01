@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.byteCode.ClassObj;
 import org.byteCode.config.MainConfig;
+import org.byteCode.message.WatchMethod;
 import org.byteCode.transformer.WatchTransformer;
 import org.byteCode.util.Json;
 import org.smartboot.http.server.HttpRequest;
@@ -83,8 +84,11 @@ public class Controller {
             @Override
             public void handle(HttpRequest request, HttpResponse response)
                 throws IOException, UnmodifiableClassException {
-                WatchTransformer watchTransformer = new WatchTransformer();
+                String method = request.getParameter("method");
+                WatchMethod watchMethod = Json.readValue(method, WatchMethod.class);
+                WatchTransformer watchTransformer = new WatchTransformer(watchMethod);
                 System.out.println("-------start watch-------------" + MainConfig.mainPkg);
+                System.out.println("3-" + Json.toJson(watchMethod));
                 MainConfig.inst.addTransformer(watchTransformer, true);
                 for (Class<?> c : allLoadedClasses) {
                     if (c.getName().startsWith("com.doe.afs") && !c.getName().contains("$")) {
@@ -96,6 +100,7 @@ public class Controller {
                 while (MainConfig.watchRes.isWait()) {
                     // 等待watch的目标方法执行
                 }
+                MainConfig.inst.removeTransformer(watchTransformer);
                 response.write(Json.toBytes(MainConfig.watchRes));
             }
         });

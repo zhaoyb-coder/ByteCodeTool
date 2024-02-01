@@ -1,5 +1,7 @@
 package org.byteCode.clint;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import org.byteCode.config.MainConfig;
@@ -15,19 +17,16 @@ import org.smartboot.http.client.HttpClient;
  **/
 public class Clint {
 
-    public static WatchMsg result = new WatchMsg();
+    public static volatile WatchMsg result = new WatchMsg();
 
     public static void watch() {
-        System.out.println("clint----watch---`start`");
         HttpClient httpClient = new HttpClient("127.0.0.1", MainConfig.HTTP_PORT);
         CountDownLatch cd = new CountDownLatch(1);
-        MainConfig.watchText.setText("等待中....");
-        httpClient.get("/watch").onSuccess(response -> {
+        Map<String, String> params = new HashMap<>();
+        params.put("method", Json.toJson(MainConfig.watchMethod));
+        httpClient.post("/watch").body().formUrlencoded(params).onSuccess(response -> {
             try {
-                System.out.println("clint----watch---start");
-                System.out.println(response.body());
                 result = Json.readValue(response.body(), WatchMsg.class);
-                System.out.println("clint----watch---end");
                 cd.countDown();
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -36,8 +35,7 @@ public class Clint {
         }).onFailure(Throwable::printStackTrace).done();
         try {
             cd.await();
-            System.out.println("clint----success--" + Json.toJson(result));
-            MainConfig.watchText.setText(Json.toJson(result));
+            MainConfig.watchText.setText(Json.format(result));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
