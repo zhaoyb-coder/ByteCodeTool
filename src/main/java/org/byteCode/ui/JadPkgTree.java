@@ -1,6 +1,5 @@
 package org.byteCode.ui;
 
-import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -39,7 +38,6 @@ public class JadPkgTree {
             try {
                 ClassObj clazz = Json.readValue(response.body(), ClassObj.class);
                 MainConfig.classObj = clazz;
-                System.out.println(MainConfig.classObj);
                 DefaultMutableTreeNode jTreeRoot = buildTree(clazz.getClassName());
                 JadTree = new JTree(jTreeRoot);
                 JadTree.expandRow(1);
@@ -237,38 +235,5 @@ public class JadPkgTree {
             }
             this.totalNum += childNode.totalNum + 1; // 加上当前节点自身
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        JTree tree = new JTree();
-        tree.getSelectionModel().setSelectionMode(TreeSelectionModel.DISCONTIGUOUS_TREE_SELECTION);
-        TreeSelectionListener treeSelectionListener = treeSelectionEvent -> {
-            JTree treeSource = (JTree)treeSelectionEvent.getSource();
-            TreePath[] selectionPaths = treeSource.getSelectionPaths();
-            if (null != selectionPaths) {
-                for (TreePath selectionPath : selectionPaths) {
-                    Object[] path = selectionPath.getPath();
-                    String full = "";
-                    for (int i = 0; i < path.length; i++) {
-                        if (i == 0) {
-                            full = full + path[i].toString();
-                        } else if (i == path.length - 1) {
-                            // 最后一个节点是方法
-                            full = full + "#" + path[i].toString();
-                        } else {
-                            full = full + "." + path[i].toString();
-                        }
-                    }
-                    System.out.println(full);
-                }
-            }
-        };
-        tree.addTreeSelectionListener(treeSelectionListener);
-        JFrame frame = new JFrame("");
-        frame.add(new JScrollPane(tree));
-        frame.setPreferredSize(new Dimension(380, 320));
-        frame.setLocation(150, 150);
-        frame.pack();
-        frame.setVisible(true);
     }
 }

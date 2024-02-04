@@ -1,6 +1,9 @@
 package org.byteCode.config;
 
 import java.lang.instrument.Instrumentation;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import javax.swing.*;
 
@@ -53,8 +56,20 @@ public class MainConfig {
      */
     public static final int HTTP_PORT = 10086;
 
-    public static volatile WatchMsg watchRes = new WatchMsg();
+    public static volatile List<WatchMsg> watchRes = new ArrayList<>();
+
+    public static void setWatchMsg(String method, String className, String execTime, String request, String response) {
+        WatchMsg watch = new WatchMsg();
+        watch.setMethodName(method);
+        watch.setClassName(className);
+        watch.setRequest(request);
+        watch.setResponse(response);
+        watch.setExecTime(execTime);
+        watchRes.add(watch);
+    }
 
     public static volatile WatchMethod watchMethod = new WatchMethod();
+
+    public static volatile CountDownLatch cd = new CountDownLatch(1);
 
 }

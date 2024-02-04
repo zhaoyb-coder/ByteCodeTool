@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import org.byteCode.ClassObj;
 import org.byteCode.config.MainConfig;
@@ -86,19 +88,27 @@ public class Controller {
                 throws IOException, UnmodifiableClassException {
                 String method = request.getParameter("method");
                 WatchMethod watchMethod = Json.readValue(method, WatchMethod.class);
+                int methodNum = 0;
+                Map<String, Set<String>> currentWatchMap = watchMethod.currentWatchMap;
+                Set<String> keySet = currentWatchMap.keySet();
+                for (String key : keySet) {
+                    int size = currentWatchMap.get(key).size();
+                    methodNum = methodNum + size;
+                }
+                // 定义计数器
+                MainConfig.cd = new CountDownLatch(methodNum);
                 WatchTransformer watchTransformer = new WatchTransformer(watchMethod);
-                System.out.println("-------start watch-------------" + MainConfig.mainPkg);
-                System.out.println("3-" + Json.toJson(watchMethod));
                 MainConfig.inst.addTransformer(watchTransformer, true);
                 for (Class<?> c : allLoadedClasses) {
                     if (c.getName().startsWith("com.doe.afs") && !c.getName().contains("$")) {
                         MainConfig.inst.retransformClasses(c);
                     }
                 }
-                // 进入等待
-                MainConfig.watchRes.setWait(true);
-                while (MainConfig.watchRes.isWait()) {
-                    // 等待watch的目标方法执行
+                // 进入等待,需要等所有监控的方法都被触发调用才能结束主进程的阻塞
+                try {
+                    MainConfig.cd.await();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
                 MainConfig.inst.removeTransformer(watchTransformer);
                 response.write(Json.toBytes(MainConfig.watchRes));

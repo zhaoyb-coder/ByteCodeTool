@@ -1,6 +1,9 @@
 package org.byteCode.clint;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
@@ -17,7 +20,7 @@ import org.smartboot.http.client.HttpClient;
  **/
 public class Clint {
 
-    public static volatile WatchMsg result = new WatchMsg();
+    public static volatile List<WatchMsg> result = new ArrayList<>();
 
     public static void watch() {
         HttpClient httpClient = new HttpClient("127.0.0.1", MainConfig.HTTP_PORT);
@@ -26,7 +29,7 @@ public class Clint {
         params.put("method", Json.toJson(MainConfig.watchMethod));
         httpClient.post("/watch").body().formUrlencoded(params).onSuccess(response -> {
             try {
-                result = Json.readValue(response.body(), WatchMsg.class);
+                result = Arrays.asList(Json.readValue(response.body(), WatchMsg[].class));
                 cd.countDown();
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -35,6 +38,7 @@ public class Clint {
         }).onFailure(Throwable::printStackTrace).done();
         try {
             cd.await();
+            MainConfig.watchText.setText("");
             MainConfig.watchText.setText(Json.format(result));
         } catch (InterruptedException e) {
             e.printStackTrace();

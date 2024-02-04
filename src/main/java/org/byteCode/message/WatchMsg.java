@@ -12,8 +12,6 @@ public class WatchMsg implements Serializable {
 
     private static final long serialVersionUID = -5540205557206208721L;
 
-    /** 是否可以返回 */
-    private static boolean wait = true;
     /** 类名 */
     private String className;
     /** 方法名 */
@@ -51,14 +49,6 @@ public class WatchMsg implements Serializable {
 
     public void setResponse(Object response) {
         this.response = response;
-    }
-
-    public boolean isWait() {
-        return wait;
-    }
-
-    public void setWait(boolean wait) {
-        this.wait = wait;
     }
 
     public String getClassName() {

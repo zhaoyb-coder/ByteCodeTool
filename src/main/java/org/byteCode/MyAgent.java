@@ -20,12 +20,10 @@ public class MyAgent {
             // 保存全局配置
             MainConfig.inst = inst;
             MainConfig.mainPkg = agentArgs;
-            // 初始化ClassPool#ClassesLoaded
-            // initClassesLoaded(inst.getAllLoadedClasses());
+            // 初始化ClassPool#ClassesLoaded,javassist加入SpringBoot的自定义类加载器
+            initClassesLoaded(inst.getAllLoadedClasses());
             // 开启http服务
             startHttp(agentArgs, inst.getAllLoadedClasses());
-            // 增加Watch
-            // inst.addTransformer(new WatchTransformer());
         } catch (Exception e) {
             e.printStackTrace();
         }

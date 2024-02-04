@@ -46,26 +46,25 @@ public class WatchTransformer implements ClassFileTransformer {
                 ctMethod.addLocalVariable("startTime", CtClass.longType);
                 ctMethod.addLocalVariable("endTime", CtClass.longType);
                 ctMethod.addLocalVariable("execTime", CtClass.longType);
-                ctMethod.addLocalVariable("execTime", CtClass.longType);
                 ctMethod.addLocalVariable("request", MainConfig.classPool.get(String.class.getName()));
                 ctMethod.addLocalVariable("response", MainConfig.classPool.get(String.class.getName()));
+                ctMethod.addLocalVariable("method", MainConfig.classPool.get(String.class.getName()));
+                ctMethod.addLocalVariable("className", MainConfig.classPool.get(String.class.getName()));
+                ctMethod.insertBefore("method = \"" + method + "\";");
+                ctMethod.insertAfter("className = \"" + className + "\";");
                 ctMethod.insertBefore("startTime = System.currentTimeMillis();");
                 ctMethod.insertAfter("endTime = System.currentTimeMillis();");
                 ctMethod.insertAfter("execTime = endTime - startTime;");
-                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setMethodName(\"" + method + "\");");
-                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setClassName(\"" + className + "\");");
-                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setExecTime(execTime+\"ms\");");
                 ctMethod.insertAfter("request = org.byteCode.util.Json.toJson($args);");
                 ctMethod.insertAfter("response = org.byteCode.util.Json.toJson($_);");
-                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setRequest(request);");
-                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setResponse(response);");
-                ctMethod.insertAfter("org.byteCode.config.MainConfig.watchRes.setWait(false);");
+                ctMethod.insertAfter(
+                    "org.byteCode.config.MainConfig.setWatchMsg(method,className,execTime+\"ms\",request,response);");
+                ctMethod.insertAfter("org.byteCode.config.MainConfig.cd.countDown();");
             }
             ctClass.detach();
             ctClass.defrost();
             return ctClass.toBytecode();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             e.printStackTrace();
         }
         return null;
